@@ -4,7 +4,7 @@ A minimal statusline for [Claude Code](https://docs.anthropic.com/en/docs/claude
 
 ![examples](examples.png)
 
-Directory, git branch, dirty indicator, model, effort, and context window usage - color-coded yellow at 60%, orange at 80%, red at 95%.
+Directory, git branch, dirty indicator, model, effort, context window usage (color-coded yellow at 60%, orange at 80%, red at 95%), session cost, and monthly accumulated cost.
 
 ## Install
 
