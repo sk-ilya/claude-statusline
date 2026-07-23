@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-DEST="$HOME/.claude"
+DEST="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
 SCRIPT="statusline-command.sh"
 SETTINGS="$DEST/settings.json"
 RAW_URL="https://raw.githubusercontent.com/sk-ilya/claude-statusline/main/$SCRIPT"
