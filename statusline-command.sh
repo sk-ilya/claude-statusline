@@ -103,7 +103,7 @@ format_cost() {
     ' "$state_dir/"*.state 2>/dev/null)
 
     if is_number "$monthly_cost" && [[ $formatted != "$monthly_cost" ]]; then
-        label+=" (\$${monthly_cost}/mo)"
+        label+=" (\$${monthly_cost} $(date +%b))"
     fi
 
     # Throttled cleanup: scan at most once per day
