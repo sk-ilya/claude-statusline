@@ -19,7 +19,7 @@ is_number() {
 format_cost() {
     local raw=$1 session_id=$2
     local formatted config_dir cost_dir state_dir month state_file
-    local lock_fd tmp monthly_cost cleanup_stamp
+    local tmp monthly_cost cleanup_stamp
 
     formatted=$(printf '%.2f' "$raw") || return
     local label="\$${formatted}"
@@ -49,16 +49,16 @@ format_cost() {
     month=$(date +%Y-%m)
     state_file="$state_dir/${session_id}.state"
 
-    # Per-session lock serializes the read-modify-write cycle.
-    # No cross-session contention: each session locks its own file.
-    exec {lock_fd}>"$state_file.lock" || {
-        printf '%s' "$label"
-        return
-    }
-    flock "$lock_fd" || {
-        printf '%s' "$label"
-        return
-    }
+    # Per-session lock via mkdir (atomic on all POSIX, works on macOS unlike flock).
+    local lock_dir="$state_file.lkdir"
+    if ! mkdir -- "$lock_dir" 2>/dev/null; then
+        rmdir -- "$lock_dir" 2>/dev/null
+        mkdir -- "$lock_dir" 2>/dev/null || {
+            printf '%s' "$label"
+            return
+        }
+    fi
+    trap 'rmdir -- "$lock_dir" 2>/dev/null' RETURN
 
     # A session spanning months carries its full lifetime cost; month_baseline
     # records the cost at the start of the current month so only the delta
@@ -112,6 +112,9 @@ format_cost() {
         || [[ -n $(find "$cleanup_stamp" -mtime +0 -print -quit 2>/dev/null) ]]; then
         find "$state_dir" -maxdepth 1 -type f -name '*.state' -mtime +62 \
             -delete 2>/dev/null
+        # Remove stale lock dirs (orphaned by crashes)
+        find "$state_dir" -maxdepth 1 -type d -name '*.lkdir' -mmin +1 \
+            -exec rmdir {} + 2>/dev/null
         touch -- "$cleanup_stamp" 2>/dev/null || true
     fi
 
@@ -154,7 +157,9 @@ if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
 fi
 
 parts=()
-[[ -n $model ]] && parts+=("${model,,}")
+if [[ -n $model ]]; then
+    parts+=("$(printf '%s' "$model" | tr '[:upper:]' '[:lower:]')")
+fi
 
 if [[ -n $effort ]]; then
     if [[ $effort == max ]]; then
