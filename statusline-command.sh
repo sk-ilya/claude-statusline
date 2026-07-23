@@ -103,7 +103,9 @@ format_cost() {
     ' "$state_dir/"*.state 2>/dev/null)
 
     if is_number "$monthly_cost" && [[ $formatted != "$monthly_cost" ]]; then
-        label+=" (\$${monthly_cost} $(date +%b))"
+        local cost=$monthly_cost
+        (( 10#${monthly_cost%%.*} >= 10 )) && cost=${monthly_cost%%.*}
+        label+=" (\$$cost $(date +%b))"
     fi
 
     # Throttled cleanup: scan at most once per day
