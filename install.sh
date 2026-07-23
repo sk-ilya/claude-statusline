@@ -26,4 +26,4 @@ fi
 tmp=$(mktemp)
 jq --arg cmd "$DEST/$SCRIPT" '.statusLine = {"type": "command", "command": $cmd}' "$SETTINGS" > "$tmp" && mv "$tmp" "$SETTINGS"
 
-echo "Installed. Restart Claude Code to activate the statusline."
+echo "Installed. The statusline will appear in new Claude sessions."
